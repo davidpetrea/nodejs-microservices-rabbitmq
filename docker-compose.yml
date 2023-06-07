@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - clientsvc
+  clientsvc:
+    build: ./client-service
+    deploy:
+      replicas: 2
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  usersvc:
+    build: ./user-service
+    depends_on:
+      - clientsvc
+  emailsvc:
+    build: ./email-service
+    depends_on:
+      - clientsvc
+  rabbitmq:
+    build: ./rabbitmq
+    container_name: main-rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmqctl', 'status']
+      interval: 5s
+      timeout: 20s
+      retries: 5
